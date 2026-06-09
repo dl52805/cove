@@ -1,0 +1,10 @@
+CompileFlags:
+  Add:
+    - -std=c++2c
+    - -Xclang
+    - -fno-cxx-modules
+    - -Wno-unknown-attributes
+    - -Isrc
+    - -Ilib
+    - -Igenerated
+    - -Icommon

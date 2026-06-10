@@ -130,5 +130,11 @@ struct Array
 
     return data[index];
   }
-};
 
+  const T& operator[](u32 index) const
+  {
+    assert((index >= 0) && (index < length));
+
+    return data[index];
+  }
+};

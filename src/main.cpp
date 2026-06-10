@@ -5,8 +5,10 @@
 #include "lex_meta.hpp"
 
 #include "lex.hpp"
+#include "array.hpp"
 #include "arena.hpp"
 #include "string.hpp"
+#include "parse.hpp"
 
 enum struct Stage
 {
@@ -33,15 +35,23 @@ Stage compiler_flag;
 
 void compile(Allocator *alloc, String8_View source, String8_View file_name)
 {
+  Array<Token> tokens(alloc);
+
   Lexer lex(source, alloc);
   while (true)
   {
     Token token = lex.scan_token();
+    tokens.append(token);
     print_token(token, source);
     if (token.type == Token_Type::eof) break;
   }
 
   if (compiler_flag == Stage::lex) exit(0);
+
+  Parser parser(source, tokens, alloc);
+  Program program = parser.parse_program();
+
+  if (compiler_flag == Stage::parse) exit(0);
 }
 
 int main(int argc, char *argv[])

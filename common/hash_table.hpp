@@ -176,7 +176,7 @@ struct Hash_Table
     {
       u32 old_capacity = capacity;
       capacity <<= 1;
-      Entry *new_table = (Entry *) alloc->allocate(capacity).unwrap();
+      Entry *new_table = (Entry *) alloc->allocate(capacity * sizeof(Entry)).unwrap();
       for (u32 i = 0; i < old_capacity; i++)
       {
         Entry curr_entry = table[i];

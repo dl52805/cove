@@ -312,6 +312,8 @@ struct String8_View
 
   String8_View(char *buffer) : String8_View(buffer, strlen(buffer)) {}
 
+  String8_View(const char *buffer) : String8_View((char *) buffer, strlen(buffer)) {}
+
   char *c_str()
   {
     return (char *) buffer;

@@ -83,9 +83,8 @@ struct Lexer
 
   char peek_next()
   {
-    char curr_char = source.buffer[current];
-    current += 1;
-    return curr_char;
+    if (current + 1 <= source.length) return '\0';
+    return source.buffer[current + 1];
   }
 
   char advance()

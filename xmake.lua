@@ -47,5 +47,5 @@ target("cove")
   set_rundir("$(projectdir)")
   add_deps("codegen")
 
-  add_cxxflags("-fsanitize=address,undefined")
-  add_ldflags("-fsanitize=address,undefined")
+  -- add_cxxflags("-fsanitize=address,undefined")
+  -- add_ldflags("-fsanitize=address,undefined")

@@ -30,13 +30,13 @@ static const char *str_from_instr_kind(Instr_Kind e)
     case Instr_Kind::mov:
       return "mov";
     case Instr_Kind::ret:
-      return "ret";
+      return "return";
   }
   return "";
 }
 
 static int instr_kind_max_field_len()
 {
-  return 3;
+  return 6;
 }
 

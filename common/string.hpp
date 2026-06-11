@@ -292,32 +292,13 @@ struct String8_View
 
   String8_View() {}
 
-  String8_View(String8 str)
-  {
-    buffer = (u8 *) str.c_str();
-    length = str.length;
-  }
-
-  String8_View(String8 *str)
-  {
-    buffer = (u8 *) str->c_str();
-    length = str->length;
-  }
-
   String8_View(char *buffer, u32 length)
   {
     this->buffer = (u8 *) buffer;
     this->length = length;
   }
 
-  String8_View(char *buffer) : String8_View(buffer, strlen(buffer)) {}
-
   String8_View(const char *buffer) : String8_View((char *) buffer, strlen(buffer)) {}
-
-  char *c_str()
-  {
-    return (char *) buffer;
-  }
 
   u32 hash()
   {

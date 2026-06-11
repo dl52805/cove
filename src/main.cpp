@@ -9,6 +9,7 @@
 #include "arena.hpp"
 #include "string.hpp"
 #include "parse.hpp"
+#include "ir.hpp"
 
 enum struct Stage
 {
@@ -52,6 +53,16 @@ void compile(Allocator *alloc, String8_View source, String8_View file_name)
   Program program = parser.parse_program();
 
   if (compiler_flag == Stage::parse) exit(0);
+
+  String8 assembly_name((char *) file_name.buffer, file_name.length, alloc);
+  assembly_name.cat(".s");
+
+  printf("\n=======[assembly]=======\n");
+  IR_Program ir_program(alloc);
+  ir_program.lower_ir(program, source);
+  ir_program.emit_assembly(assembly_name, true);
+
+  if (compiler_flag == Stage::codegen) exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -155,7 +166,8 @@ int main(int argc, char *argv[])
   String8::read_from_file(&preprocessed, preprocessed_name.c_str(), &arena);
   remove(preprocessed_name.c_str());
 
-  compile(&arena, String8_View(preprocessed), String8_View(file_name));
+  compile(&arena, String8_View(preprocessed.c_str()),
+          String8_View(file_name.c_str()));
 
   String8 assembly_name(file_name.c_str(), &arena);
   assembly_name.cat(".s");
@@ -180,4 +192,3 @@ int main(int argc, char *argv[])
 
   arena.deinit();
 }
-

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "def.hpp"
 
@@ -18,6 +19,7 @@ struct Region
   static Region *create(size_t capacity)
   {
     u8 *region_mem = new u8[sizeof(Region) + capacity];
+    memset(region_mem, 0, sizeof(Region) + capacity);
     Region *region = (Region *) region_mem;
     region->offset = 0;
     region->capacity = capacity;
@@ -149,4 +151,3 @@ struct Arena : Allocator
     end = nullptr;
   }
 };
-

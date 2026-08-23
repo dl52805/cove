@@ -1,10 +1,10 @@
 #pragma once
 
-#define meta(...)
-
 #include "def.hpp"
-#include "string.hpp"
 #include "hash_table.hpp"
+#include "string.hpp"
+
+#define meta(...)
 
 enum struct [[meta::stringify]]
 Token_Type : int
@@ -38,10 +38,12 @@ struct Token
   u32 position;
   u32 length;
 
-  Token() {}
-
-  Token(Token_Type type, u32 position, u32 length)
-    : type(type), position(position), length(length) {}
+  void init_token(Token *tok, Token_Type type, u32 position, u32 length)
+  {
+    tok->type = type;
+    tok->position = position;
+    tok->length = length;
+  }
 };
 
 struct Lexer

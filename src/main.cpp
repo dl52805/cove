@@ -49,7 +49,15 @@ void compile(Allocator *alloc, String8_View source, String8_View file_name)
 
   if (compiler_flag == Stage::lex) exit(0);
 
-  Parser parser(source, tokens, alloc);
+  Typed_Arena<node_idx> *ast_stream = Typed_Arena<node_idx>::create();
+  Typed_Arena<Ast_Node> *ast_arena = Typed_Arena<Ast_Node>::create();
+  Typed_Arena<node_idx> *child_arena = Typed_Arena<node_idx>::create();
+
+  ast_stream->push();
+  ast_arena->push();
+  child_arena->push();
+
+  Parser parser(source, tokens, ast_stream, ast_arena, child_arena);
   Program program = parser.parse_program();
 
   if (compiler_flag == Stage::parse) exit(0);
@@ -58,8 +66,12 @@ void compile(Allocator *alloc, String8_View source, String8_View file_name)
   assembly_name.cat(".s");
 
   printf("\n=======[assembly]=======\n");
-  IR_Program ir_program(alloc);
-  ir_program.lower_ir(program, source);
+
+  Typed_Arena<IR_Instr> *ir_stream = Typed_Arena<IR_Instr>::create();
+  ir_stream->push();
+
+  IR_Program ir_program(program, ir_stream, alloc);
+  ir_program.lower_ir();
   ir_program.emit_assembly(assembly_name, true);
 
   if (compiler_flag == Stage::codegen) exit(0);
@@ -192,3 +204,4 @@ int main(int argc, char *argv[])
 
   arena.deinit();
 }
+

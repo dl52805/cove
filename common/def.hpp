@@ -25,3 +25,19 @@ constexpr const char *reset      = "\033[0m";
 #define max(arg1, arg2) (((arg1) > (arg2)) ? (arg1) : (arg2))
 #define min(arg1, arg2) (((arg1) < (arg2)) ? (arg1) : (arg2))
 
+#define kilobytes(n) (n << 10)
+#define megabytes(n) (n << 20)
+#define gigabytes(n) (((u64) n) << 30)
+#define terabytes(n) (((u64) n) << 40)
+
+// force inline
+#if defined(__clang__) || defined(__GNUC__)
+    #define force_inline __attribute__((always_inline)) inline
+#endif
+
+force_inline
+constexpr u64 align_to(u64 size, u64 align)
+{
+  return (size + (align - 1)) & ~(align - 1);
+}
+

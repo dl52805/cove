@@ -7,15 +7,8 @@
 #include "typed_arena.hpp"
 
 #include "ast.hpp"
+#include "hir.hpp"
 #include "parse.hpp"
-
-enum struct [[meta::stringify]]
-Operand_Kind
-{
-  meta("unused")   unused,
-  meta("const")    constant,
-  meta("register") register_id,
-};
 
 enum struct [[meta::stringify]]
 Instr_Kind
@@ -25,17 +18,6 @@ Instr_Kind
   meta("return") ret,
   meta("label")  label,
   meta("global") global,
-};
-
-struct Operand
-{
-  using enum Operand_Kind;
-  Operand_Kind kind;
-  union
-  {
-    i64 const_val;
-    u32 reg_id;
-  };
 };
 
 void init_const(Operand *op, i64 const_val);

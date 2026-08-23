@@ -1,9 +1,15 @@
 #pragma once
 
-#include "lex.hpp"
-#include "typed_arena.hpp"
+#include "string.hpp"
 
 #define meta(...)
+
+enum struct [[meta::stringify]]
+HIR_Surface_Type : int
+{
+  unused,
+  fn_def,
+};
 
 struct HIR_Surface
 {
@@ -12,8 +18,31 @@ struct HIR_Surface
   u32 instr_count;
 };
 
-enum struct HIR_Type
+enum struct [[meta::stringify]]
+HIR_Instr_Type : int
 {
+  unused,
+  ret,
+  unary,
+};
+
+enum struct [[meta::stringify]]
+Operand_Kind
+{
+  meta("unused")   unused,
+  meta("const")    constant,
+  meta("register") register_id,
+};
+
+struct Operand
+{
+  using enum Operand_Kind;
+  Operand_Kind kind;
+  union
+  {
+    i64 const_val;
+    u32 reg_id;
+  };
 };
 
 struct HIR_Instr

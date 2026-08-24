@@ -78,6 +78,7 @@ struct Parser
   void match_or_err(Token tok, Token_Type type, const char *err_msg);
   void expect_or_err(Token_Type type, const char *err_msg);
   void expect_peek_or_err(Token_Type type, const char *err_msg);
+  void consume_optional(Token_Type type);
 
   node_idx parse_surface_node();
   node_idx parse_stmt();

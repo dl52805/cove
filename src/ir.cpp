@@ -1,22 +1,5 @@
 #include "ir.hpp"
-
-Operand init_const(i64 const_val)
-{
-  Operand op;
-  using enum Operand_Kind;
-  op.kind = constant;
-  op.const_val = const_val;
-  return op;
-}
-
-Operand init_reg(u32 reg_id)
-{
-  Operand op;
-  using enum Operand_Kind;
-  op.kind = register_id;
-  op.reg_id = reg_id;
-  return op;
-}
+#include "hir.hpp"
 
 void init_mov(IR_Instr *instr, Operand src, Operand dest)
 {

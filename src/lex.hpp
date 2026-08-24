@@ -27,6 +27,7 @@ Token_Type : int
   meta("rbrace")         rbrace,
   meta("semicolon")      semicolon,
   meta("tilde")          tilde,
+  meta("bang")           bang,
   meta("dash")           dash,
   meta("dash_dash")      dash_dash,
   meta("slash")          slash,
@@ -193,6 +194,9 @@ struct Lexer
         }
       case '~':
         type = tilde;
+        break;
+      case '!':
+        type = bang;
         break;
     }
 

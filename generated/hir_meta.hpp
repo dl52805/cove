@@ -2,3 +2,61 @@
 
 #include "hir.hpp"
 
+enum struct HIR_Surface_Kind : int;
+static const char *str_from_hir_surface_kind(HIR_Surface_Kind e)
+{
+  switch (e)
+  {
+    case HIR_Surface_Kind::unused:
+      return "illegal";
+    case HIR_Surface_Kind::fn_def:
+      return "fn_def";
+  }
+  return "";
+}
+
+static int hir_surface_kind_max_field_len()
+{
+  return 7;
+}
+
+enum struct HIR_Instr_Kind : int;
+static const char *str_from_hir_instr_kind(HIR_Instr_Kind e)
+{
+  switch (e)
+  {
+    case HIR_Instr_Kind::unused:
+      return "illegal";
+    case HIR_Instr_Kind::ret:
+      return "return";
+    case HIR_Instr_Kind::unary:
+      return "unary";
+  }
+  return "";
+}
+
+static int hir_instr_kind_max_field_len()
+{
+  return 7;
+}
+
+enum struct Operand_Kind : int;
+static const char *str_from_operand_kind(Operand_Kind e)
+{
+  switch (e)
+  {
+    case Operand_Kind::unused:
+      return "unused";
+    case Operand_Kind::constant:
+      return "const";
+    case Operand_Kind::register_id:
+      return "register";
+  }
+  return "";
+}
+
+static int operand_kind_max_field_len()
+{
+  return 8;
+}
+

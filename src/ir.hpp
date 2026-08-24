@@ -20,9 +20,6 @@ Instr_Kind
   meta("global") global,
 };
 
-void init_const(Operand *op, i64 const_val);
-void init_reg(Operand *op, u32 reg_id);
-
 struct IR_Instr
 {
   using enum Instr_Kind;

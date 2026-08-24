@@ -5,12 +5,22 @@
 #include "lex.hpp"
 
 enum struct [[meta::stringify]]
+Unary_Op : int
+{
+  meta("illegal")    unused,
+  meta("complement") complement,
+  meta("negate")     negate,
+  meta("cond_not")   cond_not,
+};
+
+enum struct [[meta::stringify]]
 Ast_Kind : int
 {
   meta("invalid") Invalid,
 
   // expressions
   meta("int_lit") Int_Lit,
+  meta("unary")   Unary,
 
   // statements
   meta("block")   Block,
@@ -37,6 +47,11 @@ struct Ast_Node
       Token tok;
       int val;
     } int_lit;
+    struct
+    {
+      node_idx rhs;
+      Unary_Op op;
+    } unary;
     struct
     {
       u32 stmts_start;
@@ -75,4 +90,5 @@ void init_int_lit(Ast_Node *node, Token tok, String8_View source);
 void init_block(Ast_Node *node, u32 stmts_start, u32 stmts_count);
 void init_ret(Ast_Node *node, node_idx rhs);
 void init_fn_def(Ast_Node *node, Token name_ident, node_idx body);
+void init_unary(Ast_Node *node, node_idx rhs, Unary_Op op);
 

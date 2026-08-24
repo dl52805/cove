@@ -106,6 +106,12 @@ void Parser::expect_peek_or_err(Token_Type type, const char *err_msg)
   }
 }
 
+void Parser::consume_optional(Token_Type type)
+{
+  Token curr = curr_token();
+  if (curr.type == type) next_token();
+}
+
 node_idx Parser::parse_surface_node()
 {
   return parse_fn_decl();
@@ -121,7 +127,7 @@ node_idx Parser::parse_stmt()
     case return_keyword:
       return parse_ret_stmt();
     default:
-      error("invalid statement, expected \"return\"");
+      error("Invalid statement, expected \"return\"");
       return node_idx(0);
   }
 }
@@ -139,8 +145,33 @@ node_idx Parser::parse_expr()
         init_int_lit(ast_arena->get(int_lit.idx), curr, source);
         return int_lit;
       }
+    case tilde:
+    case dash:
+    case bang:
+      {
+        using enum Unary_Op;
+
+        Unary_Op op;
+        if (curr.type == tilde) op = complement;
+        else if (curr.type == dash) op = negate;
+        else if (curr.type == bang) op = cond_not;
+
+        next_token();
+        node_idx rhs = parse_expr();
+        node_idx unary = node_idx(ast_arena->push());
+        Ast_Node *node = ast_arena->get(unary.idx);
+        init_unary(node, rhs, op);
+        return unary;
+      }
+    case lparen:
+      {
+        next_token();
+        node_idx expr = parse_expr();
+        expect_or_err(rparen, "Expected closing parentheses");
+        return expr;
+      }
     default:
-      error("unexpected expression");
+      error("Unexpected expression");
       return node_idx(0);
   }
 }
@@ -173,7 +204,7 @@ node_idx Parser::parse_ret_stmt()
   next_token();
   node_idx rhs = parse_expr();
   next_token();
-  expect_or_err(semicolon, "expected semicolon");
+  expect_or_err(semicolon, "Expected semicolon");
 
   node_idx ret_stmt = node_idx(ast_arena->push());
   init_ret(ast_arena->get(ret_stmt.idx), rhs);
@@ -189,7 +220,7 @@ node_idx Parser::parse_fn_decl()
   next_token();
 
   expect_or_err(lparen, "Missing opening parentheses");
-  expect_or_err(void_keyword, "Invalid function parameters");
+  consume_optional(void_keyword);
   expect_or_err(rparen, "Missing closing parentheses");
 
   expect_or_err(lbrace, "Missing opening brace");
@@ -245,6 +276,15 @@ void Parser::print_node(node_idx node, int depth)
         {
           print_indent(depth);
           printf("[value]: %s%d%s\n", green, node_obj->int_lit.val, reset);
+          break;
+        }
+      case Unary:
+        {
+          print_indent(depth);
+          printf("[op]: %s\n", str_from_unary_op(node_obj->unary.op));
+          print_indent(depth);
+          printf("[expr]: \n");
+          print_node(node_obj->unary.rhs, depth + 1);
           break;
         }
       default:

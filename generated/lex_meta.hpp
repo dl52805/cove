@@ -35,6 +35,8 @@ static const char *str_from_token_type(Token_Type e)
       return "semicolon";
     case Token_Type::tilde:
       return "tilde";
+    case Token_Type::bang:
+      return "bang";
     case Token_Type::dash:
       return "dash";
     case Token_Type::dash_dash:

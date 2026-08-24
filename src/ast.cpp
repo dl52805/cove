@@ -31,3 +31,10 @@ void init_fn_def(Ast_Node *node, Token name_ident, node_idx body)
   node->fn_def.body = body;
 }
 
+void init_unary(Ast_Node *node, node_idx rhs, Unary_Op op)
+{
+  node->kind = Ast_Kind::Unary;
+  node->unary.rhs = rhs;
+  node->unary.op = op;
+}
+

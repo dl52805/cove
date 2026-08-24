@@ -10,12 +10,14 @@
 #include "string.hpp"
 #include "parse.hpp"
 #include "ir.hpp"
+#include "hir.hpp"
 
 enum struct Stage
 {
   complete,
   lex,
   parse,
+  hir,
   codegen,
 };
 
@@ -64,6 +66,20 @@ void compile(Allocator *alloc, String8_View source, String8_View file_name)
 
   String8 assembly_name((char *) file_name.buffer, file_name.length, alloc);
   assembly_name.cat(".s");
+
+  printf("\n=======[hir]=======\n");
+
+  Typed_Arena<HIR_Surface> *surface_stream =
+    Typed_Arena<HIR_Surface>::create();
+  Typed_Arena<HIR_Instr> *hir_instr_arena = Typed_Arena<HIR_Instr>::create();
+
+  surface_stream->push();
+  hir_instr_arena->push();
+
+  HIR_Program hir_program(program, surface_stream, hir_instr_arena, alloc);
+  hir_program.translate_ast();
+
+  if (compiler_flag == Stage::hir) exit(0);
 
   printf("\n=======[assembly]=======\n");
 
@@ -117,6 +133,15 @@ int main(int argc, char *argv[])
           return 1;
         }
         compiler_flag = Stage::parse;
+      }
+      else if (strcmp(argv[i], "--hir") == 0)
+      {
+        if (compiler_flag != Stage::complete)
+        {
+          fprintf(stderr, "%sMore than one stage flag%s\n", red, reset);
+          return 1;
+        }
+        compiler_flag = Stage::hir;
       }
       else if (strcmp(argv[i], "--codegen") == 0)
       {

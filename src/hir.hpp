@@ -1,14 +1,17 @@
 #pragma once
 
+#include "ast.hpp"
+#include "parse.hpp"
+#include "typed_arena.hpp"
 #include "string.hpp"
 
 #define meta(...)
 
 enum struct [[meta::stringify]]
-HIR_Surface_Type : int
+HIR_Surface_Kind : int
 {
-  unused,
-  fn_def,
+  meta("illegal") unused,
+  meta("fn_def")  fn_def,
 };
 
 struct HIR_Surface
@@ -19,11 +22,11 @@ struct HIR_Surface
 };
 
 enum struct [[meta::stringify]]
-HIR_Instr_Type : int
+HIR_Instr_Kind : int
 {
-  unused,
-  ret,
-  unary,
+  meta("illegal") unused,
+  meta("return")  ret,
+  meta("unary")   unary,
 };
 
 enum struct [[meta::stringify]]
@@ -45,12 +48,59 @@ struct Operand
   };
 };
 
+Operand init_const(i64 const_val);
+Operand init_reg(u32 reg_id);
+
 struct HIR_Instr
 {
+  HIR_Instr_Kind kind;
+  union
+  {
+    struct
+    {
+      Operand ret_val;
+    } ret;
+    struct
+    {
+      Unary_Op unary_type;
+      Operand src;
+      Operand dest;
+    } unary;
+  };
 };
 
 struct HIR_Program
 {
+  Typed_Arena<HIR_Surface> *surface_stream;
+  Typed_Arena<HIR_Instr> *instr_arena;
+
+  Program program;
+  Allocator *alloc;
+
+  u64 temporary_var_counter = 0;
+
+  HIR_Program(Program program, Typed_Arena<HIR_Surface> *surface_stream,
+              Typed_Arena<HIR_Instr> *instr_arena, Allocator *alloc)
+  {
+    this->surface_stream = surface_stream;
+    this->instr_arena = instr_arena;
+    this->program = program;
+    this->alloc = alloc;
+  }
+
+  void translate_ast();
+  void translate_surface(node_idx surface);
+  Operand emit_expr_hir(node_idx expr);
+  u64 make_temporary();
+
+  void print_hir(u32 hir_idx);
+  void print_op(Operand op);
 };
+
+void init_hir_surface(HIR_Surface *surface, String8 ident,
+                      u32 instr_offset, u32 instr_count);
+void init_hir_unary(HIR_Instr *instr, Unary_Op type,
+                    Operand src, Operand dest);
+void init_hir_ret(HIR_Instr *instr, Operand ret_val);
 
 

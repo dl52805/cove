@@ -25,7 +25,8 @@ void HIR_Program::translate_ast()
   for (int i = 1; i < program.ast_stream->idx; i++)
   {
     node_idx ast_idx = *(program.ast_stream->get(i));
-    translate_surface(ast_idx);
+    Ast_Node *node = program.ast_arena->get(ast_idx.idx);
+    translate_surface(node);
   }
 
   for (int i = 1; i < surface_stream->length(); i++)
@@ -34,9 +35,8 @@ void HIR_Program::translate_ast()
   }
 }
 
-void HIR_Program::translate_surface(node_idx surface)
+void HIR_Program::translate_surface(Ast_Node *node)
 {
-  Ast_Node *node = program.ast_arena->get(surface.idx);
   assert(node->kind == Ast_Kind::Fn_Def);
 
   char *ident_ptr = (char *)
@@ -51,7 +51,13 @@ void HIR_Program::translate_surface(node_idx surface)
   node_idx expr = ret->ret.rhs;
 
   u64 start_offset = instr_arena->length();
-  emit_expr_hir(expr);
+  Ast_Node *expr_node = program.ast_arena->get(expr.idx);
+  Operand result = emit_expr_hir(expr_node);
+
+  i64 ret_instr = instr_arena->push();
+  HIR_Instr *ret_node = instr_arena->get(ret_instr);
+  init_hir_ret(ret_node, result);
+
   u64 count = instr_arena->length() - start_offset;
 
   u64 surface_idx = surface_stream->push();
@@ -59,28 +65,27 @@ void HIR_Program::translate_surface(node_idx surface)
   init_hir_surface(surface_node, name, start_offset, count);
 }
 
-Operand HIR_Program::emit_expr_hir(node_idx expr)
+Operand HIR_Program::emit_expr_hir(Ast_Node *expr)
 {
-  Ast_Node *node = program.ast_arena->get(expr.idx);
-
   using enum Ast_Kind;
 
-  switch (node->kind)
+  switch (expr->kind)
   {
     case Int_Lit:
       {
-        return init_const(node->int_lit.val);
+        return init_const(expr->int_lit.val);
       }
     case Unary:
       {
-        node_idx inner_expr = node->unary.rhs;
-        Operand src = emit_expr_hir(inner_expr);
+        node_idx inner_expr = expr->unary.rhs;
+        Ast_Node *inner_expr_node = program.ast_arena->get(inner_expr.idx);
+        Operand src = emit_expr_hir(inner_expr_node);
         u64 dest_id = make_temporary();
         Operand dest = init_reg(dest_id);
 
         i64 unary = instr_arena->push();
         HIR_Instr *unary_node = instr_arena->get(unary);
-        init_hir_unary(unary_node, node->unary.op, src, dest);
+        init_hir_unary(unary_node, expr->unary.op, src, dest);
         return dest;
       }
     default:

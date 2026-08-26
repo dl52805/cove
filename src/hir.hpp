@@ -79,6 +79,8 @@ struct HIR_Program
 
   u64 temporary_var_counter = 0;
 
+  HIR_Program() {}
+
   HIR_Program(Program program, Typed_Arena<HIR_Surface> *surface_stream,
               Typed_Arena<HIR_Instr> *instr_arena, Allocator *alloc)
   {
@@ -89,8 +91,8 @@ struct HIR_Program
   }
 
   void translate_ast();
-  void translate_surface(node_idx surface);
-  Operand emit_expr_hir(node_idx expr);
+  void translate_surface(Ast_Node *node);
+  Operand emit_expr_hir(Ast_Node *expr);
   u64 make_temporary();
 
   void print_hir(u32 hir_idx);

@@ -86,8 +86,9 @@ void compile(Allocator *alloc, String8_View source, String8_View file_name)
   Typed_Arena<IR_Instr> *ir_stream = Typed_Arena<IR_Instr>::create();
   ir_stream->push();
 
-  IR_Program ir_program(program, ir_stream, alloc);
+  IR_Program ir_program(hir_program, ir_stream, alloc);
   ir_program.lower_ir();
+  ir_program.fix_instructions();
   ir_program.emit_assembly(assembly_name, true);
 
   if (compiler_flag == Stage::codegen) exit(0);

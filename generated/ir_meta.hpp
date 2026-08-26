@@ -13,16 +13,22 @@ static const char *str_from_instr_kind(Instr_Kind e)
       return "mov";
     case Instr_Kind::ret:
       return "return";
+    case Instr_Kind::fn_pre:
+      return "fn_preamble";
     case Instr_Kind::label:
       return "label";
-    case Instr_Kind::global:
-      return "global";
+    case Instr_Kind::salloc:
+      return "salloc";
+    case Instr_Kind::neg:
+      return "neg";
+    case Instr_Kind::b_not:
+      return "not";
   }
   return "";
 }
 
 static int instr_kind_max_field_len()
 {
-  return 6;
+  return 11;
 }
 

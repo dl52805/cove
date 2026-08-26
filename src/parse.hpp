@@ -1,6 +1,5 @@
 #pragma once
 
-#include "array.hpp"
 #include "string.hpp"
 #include "typed_arena.hpp"
 
@@ -39,7 +38,7 @@ struct Parser
   using enum Token_Type;
 
   String8_View source;
-  Array<Token> tok_stream;
+  Typed_Arena<Token> *tok_stream;
 
   tok_idx curr_pos;
   tok_idx peek_pos;
@@ -48,7 +47,7 @@ struct Parser
   Typed_Arena<Ast_Node> *ast_arena;
   Typed_Arena<node_idx> *child_arena;
 
-  Parser(String8_View sv, Array<Token> tokens,
+  Parser(String8_View sv, Typed_Arena<Token> *tokens,
          Typed_Arena<node_idx> *ast_stream, Typed_Arena<Ast_Node> *ast_arena,
          Typed_Arena<node_idx> *child_arena)
   {
@@ -57,8 +56,8 @@ struct Parser
     this->ast_stream = ast_stream;
     this->ast_arena = ast_arena;
     this->child_arena = child_arena;
-    curr_pos = tok_idx(0);
-    peek_pos = tok_idx(1);
+    curr_pos = tok_idx(1);
+    peek_pos = tok_idx(2);
 
     // verify that the arenas have been populated with the error
     // obj at index 0

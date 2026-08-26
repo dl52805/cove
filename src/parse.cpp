@@ -27,24 +27,24 @@ Program Parser::parse_program()
 
 Token Parser::curr_token()
 {
-  if (curr_pos.idx >= tok_stream.length)
+  if (curr_pos.idx >= tok_stream->length())
   {
     Token err;
     err.length = -1;
     return err;
   }
-  return tok_stream[curr_pos.idx];
+  return *tok_stream->get(curr_pos.idx);
 }
 
 Token Parser::peek_token()
 {
-  if (peek_pos.idx >= tok_stream.length)
+  if (peek_pos.idx >= tok_stream->length())
   {
     Token err;
     err.length = -1;
     return err;
   }
-  return tok_stream[peek_pos.idx];
+  return *tok_stream->get(peek_pos.idx);
 }
 
 void Parser::next_token()

@@ -110,7 +110,8 @@ void HIR_Program::print_hir(u32 hir_idx)
     {
       case ret:
       {
-        fprintf(stdout, "%s|%s <instr>;[ret]: ", gray, reset);
+        fprintf(stdout, "%s-%s <instr>;[ret]: \n", gray, reset);
+        fprintf(stdout, "  %s|%s val: ", gray, reset);
         print_op(instr->ret.ret_val);
         fprintf(stdout, "\n");
 
@@ -122,11 +123,11 @@ void HIR_Program::print_hir(u32 hir_idx)
         fprintf(stdout, "  %s|%s %s\n", gray, reset,
           str_from_unary_op(instr->unary.unary_type));
 
-        fprintf(stdout, "  %s|%s %%src: ", gray, reset);
+        fprintf(stdout, "  %s|%s src: ", gray, reset);
         print_op(instr->unary.src);
         fprintf(stdout, "\n");
 
-        fprintf(stdout, "  %s|%s %%dest: ", gray, reset);
+        fprintf(stdout, "  %s|%s dest: ", gray, reset);
         print_op(instr->unary.dest);
         fprintf(stdout, "\n");
 

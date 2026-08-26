@@ -5,7 +5,6 @@
 #include "lex_meta.hpp"
 
 #include "lex.hpp"
-#include "array.hpp"
 #include "arena.hpp"
 #include "string.hpp"
 #include "parse.hpp"
@@ -38,13 +37,15 @@ Stage compiler_flag;
 
 void compile(Allocator *alloc, String8_View source, String8_View file_name)
 {
-  Array<Token> tokens(alloc);
+  Typed_Arena<Token> *tokens = Typed_Arena<Token>::create();
+  tokens->push();
 
   Lexer lex(source, alloc);
   while (true)
   {
     Token token = lex.scan_token();
-    tokens.append(token);
+    u64 token_idx = tokens->push();
+    *(tokens->get(token_idx)) = token;
     print_token(token, source);
     if (token.type == Token_Type::eof) break;
   }

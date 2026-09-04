@@ -24,6 +24,30 @@ static int unary_op_max_field_len()
   return 10;
 }
 
+enum struct Binary_Op : int;
+static const char *str_from_binary_op(Binary_Op e)
+{
+  switch (e)
+  {
+    case Binary_Op::add:
+      return "add";
+    case Binary_Op::subtract:
+      return "subtract";
+    case Binary_Op::multiply:
+      return "multiply";
+    case Binary_Op::divide:
+      return "divide";
+    case Binary_Op::remainder:
+      return "remainder";
+  }
+  return "";
+}
+
+static int binary_op_max_field_len()
+{
+  return 9;
+}
+
 enum struct Ast_Kind : int;
 static const char *str_from_ast_kind(Ast_Kind e)
 {
@@ -35,6 +59,8 @@ static const char *str_from_ast_kind(Ast_Kind e)
       return "int_lit";
     case Ast_Kind::Unary:
       return "unary";
+    case Ast_Kind::Binary:
+      return "binary";
     case Ast_Kind::Block:
       return "block";
     case Ast_Kind::Return:

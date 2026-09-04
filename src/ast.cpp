@@ -38,3 +38,11 @@ void init_unary(Ast_Node *node, node_idx rhs, Unary_Op op)
   node->unary.op = op;
 }
 
+void init_binary(Ast_Node *node, node_idx lhs, node_idx rhs, Binary_Op op)
+{
+  node->kind = Ast_Kind::Binary;
+  node->binary.rhs = rhs;
+  node->binary.lhs = lhs;
+  node->binary.op = op;
+}
+

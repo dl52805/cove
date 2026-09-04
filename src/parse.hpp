@@ -33,8 +33,23 @@ struct Program
   }
 };
 
+enum struct
+Precedence : int
+{
+  lowest      = 1,
+  equals      = 2, // ==
+  lessgreater = 3, // > or <
+  sum         = 4, // +
+  product     = 5, // *
+  prefix      = 6, // -x or !x
+  call        = 7, // func(x)
+};
+
+Precedence get_precedence(Token_Type op);
+
 struct Parser
 {
+  using enum Precedence;
   using enum Token_Type;
 
   String8_View source;
@@ -81,7 +96,8 @@ struct Parser
 
   node_idx parse_surface_node();
   node_idx parse_stmt();
-  node_idx parse_expr();
+  node_idx parse_expr(Precedence prec = lowest);
+  node_idx parse_binary_expr(node_idx left);
 
   node_idx parse_int_lit();
   node_idx parse_block_stmt();
@@ -92,14 +108,4 @@ struct Parser
   void print_node(node_idx node, int depth = 0);
 };
 
-enum struct Precedence
-{
-  lowest      = 1,
-  equals      = 2, // ==
-  lessgreater = 3, // > or <
-  sum         = 4, // +
-  product     = 5, // *
-  prefix      = 6, // -x or !x
-  call        = 7, // func(x)
-};
 

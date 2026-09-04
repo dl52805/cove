@@ -37,12 +37,18 @@ static const char *str_from_token_type(Token_Type e)
       return "tilde";
     case Token_Type::bang:
       return "bang";
-    case Token_Type::dash:
-      return "dash";
     case Token_Type::dash_dash:
       return "dash_dash";
+    case Token_Type::star:
+      return "star";
     case Token_Type::slash:
       return "slash";
+    case Token_Type::dash:
+      return "dash";
+    case Token_Type::plus:
+      return "plus";
+    case Token_Type::percent:
+      return "percent";
   }
   return "";
 }

@@ -14,6 +14,16 @@ Unary_Op : int
 };
 
 enum struct [[meta::stringify]]
+Binary_Op : int
+{
+  meta("add")        add,
+  meta("subtract")   subtract,
+  meta("multiply")   multiply,
+  meta("divide")     divide,
+  meta("remainder")  remainder,
+};
+
+enum struct [[meta::stringify]]
 Ast_Kind : int
 {
   meta("invalid") Invalid,
@@ -21,6 +31,7 @@ Ast_Kind : int
   // expressions
   meta("int_lit") Int_Lit,
   meta("unary")   Unary,
+  meta("binary")  Binary,
 
   // statements
   meta("block")   Block,
@@ -35,6 +46,8 @@ struct node_idx
   u32 idx;
   explicit node_idx(u32 idx) : idx(idx) {}
   explicit node_idx() : idx(0) {}
+
+  bool is_null() { return idx == 0; };
 };
 
 struct Ast_Node
@@ -52,6 +65,12 @@ struct Ast_Node
       node_idx rhs;
       Unary_Op op;
     } unary;
+    struct
+    {
+      node_idx lhs;
+      node_idx rhs;
+      Binary_Op op;
+    } binary;
     struct
     {
       u32 stmts_start;
@@ -91,4 +110,5 @@ void init_block(Ast_Node *node, u32 stmts_start, u32 stmts_count);
 void init_ret(Ast_Node *node, node_idx rhs);
 void init_fn_def(Ast_Node *node, Token name_ident, node_idx body);
 void init_unary(Ast_Node *node, node_idx rhs, Unary_Op op);
+void init_binary(Ast_Node *node, node_idx lhs, node_idx rhs, Binary_Op op);
 

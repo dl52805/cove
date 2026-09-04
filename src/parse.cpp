@@ -1,7 +1,28 @@
 #include "ast.hpp"
 #include "parse.hpp"
 
+#include "lex_meta.hpp"
 #include "ast_meta.hpp"
+
+Precedence get_precedence(Token_Type op)
+{
+  using enum Precedence;
+  using enum Token_Type;
+  switch (op)
+  {
+    // TODO(dl): equals
+    // TODO(dl): lessgreater
+    case plus:
+    case dash:
+      return sum;
+    case star:
+    case slash:
+    case percent:
+      return product;
+    default:
+      return lowest;
+  }
+}
 
 Program Parser::parse_program()
 {
@@ -132,18 +153,21 @@ node_idx Parser::parse_stmt()
   }
 }
 
-node_idx Parser::parse_expr()
+node_idx Parser::parse_expr(Precedence prec)
 {
+  using enum Precedence;
   using enum Token_Type;
+  node_idx left(0);
 
   Token curr = curr_token();
   switch (curr.type)
   {
     case int_literal:
       {
-        node_idx int_lit = node_idx(ast_arena->push());
-        init_int_lit(ast_arena->get(int_lit.idx), curr, source);
-        return int_lit;
+        left = node_idx(ast_arena->push());
+        init_int_lit(ast_arena->get(left.idx), curr, source);
+
+        break;
       }
     case tilde:
     case dash:
@@ -157,23 +181,76 @@ node_idx Parser::parse_expr()
         else if (curr.type == bang) op = cond_not;
 
         next_token();
-        node_idx rhs = parse_expr();
-        node_idx unary = node_idx(ast_arena->push());
-        Ast_Node *node = ast_arena->get(unary.idx);
-        init_unary(node, rhs, op);
-        return unary;
+        node_idx expr = parse_expr(prefix);
+        left = node_idx(ast_arena->push());
+        init_unary(ast_arena->get(left.idx), expr, op);
+
+        break;
       }
     case lparen:
       {
         next_token();
-        node_idx expr = parse_expr();
-        expect_or_err(rparen, "Expected closing parentheses");
-        return expr;
+        left = parse_expr(lowest);
+        next_token();
+        match_or_err(curr_token(), rparen, "Expected closing parentheses");
+
+        break;
       }
     default:
       error("Unexpected expression");
       return node_idx(0);
   }
+
+  while (true)
+  {
+    Token curr = curr_token();
+    Token peek = peek_token();
+
+    if ((peek.type == semicolon)
+        || (peek.type == rparen)
+        || (prec >= get_precedence(peek.type)))
+    {
+      break;
+    }
+
+    switch (peek.type)
+    {
+      case plus:
+      case dash:
+      case star:
+      case slash:
+        next_token();
+        left = parse_binary_expr(left);
+        break;
+      default:
+        return left;
+    }
+  }
+
+  return left;
+}
+
+node_idx Parser::parse_binary_expr(node_idx left)
+{
+  using enum Binary_Op;
+
+  Token curr = curr_token();
+  Precedence prec = get_precedence(curr.type);
+
+  Binary_Op op;
+  if (curr.type == plus) op = add;
+  else if (curr.type == dash) op = subtract;
+  else if (curr.type == star) op = multiply;
+  else if (curr.type == slash) op = divide;
+  else if (curr.type == percent) op = remainder;
+
+  next_token();
+
+  node_idx right = parse_expr(prec);
+  u64 binary_expr = ast_arena->push();
+  init_binary(ast_arena->get(binary_expr), left, right, op);
+
+  return node_idx(binary_expr);
 }
 
 node_idx Parser::parse_block_stmt()
@@ -285,6 +362,18 @@ void Parser::print_node(node_idx node, int depth)
           print_indent(depth);
           printf("[expr]: \n");
           print_node(node_obj->unary.rhs, depth + 1);
+          break;
+        }
+      case Binary:
+        {
+          print_indent(depth);
+          printf("[op]: %s\n", str_from_binary_op(node_obj->binary.op));
+          print_indent(depth);
+          printf("[left]: \n");
+          print_node(node_obj->binary.lhs, depth + 1);
+          print_indent(depth);
+          printf("[right]: \n");
+          print_node(node_obj->binary.rhs, depth + 1);
           break;
         }
       default:

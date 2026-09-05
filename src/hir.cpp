@@ -88,6 +88,26 @@ Operand HIR_Program::emit_expr_hir(Ast_Node *expr)
         init_hir_unary(unary_node, expr->unary.op, src, dest);
         return dest;
       }
+    case Binary:
+      {
+        node_idx left_expr = expr->binary.lhs;
+        Ast_Node *left_expr_node = program.ast_arena->get(left_expr.idx);
+
+        node_idx right_expr = expr->binary.rhs;
+        Ast_Node *right_expr_node = program.ast_arena->get(right_expr.idx);
+
+        Operand src1 = emit_expr_hir(left_expr_node);
+        Operand src2 = emit_expr_hir(right_expr_node);
+
+        u64 dest_id = make_temporary();
+        Operand dest = init_reg(dest_id);
+
+        i64 binary = instr_arena->push();
+        HIR_Instr *binary_node = instr_arena->get(binary);
+        init_hir_binary(binary_node, expr->binary.op, src1, src2, dest);
+
+        return dest;
+      }
     default:
       return {};
   }
@@ -113,6 +133,26 @@ void HIR_Program::print_hir(u32 hir_idx)
         fprintf(stdout, "%s-%s <instr>;[ret]: \n", gray, reset);
         fprintf(stdout, "  %s|%s val: ", gray, reset);
         print_op(instr->ret.ret_val);
+        fprintf(stdout, "\n");
+
+        break;
+      }
+      case binary:
+      {
+        fprintf(stdout, "%s-%s <instr>;[binary]: \n", gray, reset);
+        fprintf(stdout, "  %s|%s %s\n", gray, reset,
+          str_from_binary_op(instr->binary.binary_type));
+
+        fprintf(stdout, "  %s|%s src: ", gray, reset);
+        print_op(instr->binary.src1);
+        fprintf(stdout, "\n");
+
+        fprintf(stdout, "  %s|%s src: ", gray, reset);
+        print_op(instr->binary.src2);
+        fprintf(stdout, "\n");
+
+        fprintf(stdout, "  %s|%s dest: ", gray, reset);
+        print_op(instr->binary.dest);
         fprintf(stdout, "\n");
 
         break;
@@ -174,6 +214,16 @@ void init_hir_unary(HIR_Instr *instr, Unary_Op type,
   instr->unary.unary_type = type;
   instr->unary.src = src;
   instr->unary.dest = dest;
+}
+
+void init_hir_binary(HIR_Instr *instr, Binary_Op type,
+                     Operand src1, Operand src2, Operand dest)
+{
+  instr->kind = HIR_Instr_Kind::binary;
+  instr->binary.binary_type = type;
+  instr->binary.src1 = src1;
+  instr->binary.src2 = src2;
+  instr->binary.dest = dest;
 }
 
 void init_hir_ret(HIR_Instr *instr, Operand ret_val)

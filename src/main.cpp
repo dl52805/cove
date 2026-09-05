@@ -205,6 +205,8 @@ int main(int argc, char *argv[])
   String8::read_from_file(&preprocessed, preprocessed_name.c_str(), &arena);
   remove(preprocessed_name.c_str());
 
+  fprintf(stdout, "%s\n", preprocessed.c_str());
+
   compile(&arena, String8_View(preprocessed.c_str()),
           String8_View(file_name.c_str()));
 

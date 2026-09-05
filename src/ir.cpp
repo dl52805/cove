@@ -96,6 +96,31 @@ void init_unary_not(IR_Instr *instr, IR_Op op)
   instr->operands[0] = op;
 }
 
+void init_binary(IR_Instr *instr, Binary_Op op, IR_Op src, IR_Op dest)
+{
+  using enum Binary_Op;
+  instr->operands[0] = src;
+  instr->result = dest;
+  switch (op)
+  {
+    case multiply:
+      instr->kind = Instr_Kind::mul;
+      break;
+    case add:
+      instr->kind = Instr_Kind::add;
+      break;
+    case subtract:
+      instr->kind = Instr_Kind::sub;
+      break;
+    case divide:
+    case remainder:
+      instr->kind = Instr_Kind::div;
+      break;
+    default:
+      return;
+  }
+}
+
 void IR_Program::lower_ir()
 {
   for (int i = 1; i < program.surface_stream->length(); i++)
@@ -158,6 +183,48 @@ void IR_Program::translate_hir_surface(HIR_Surface *surface)
               break;
             default:
               return;
+          }
+
+          break;
+        }
+      case binary:
+        {
+          u64 mov_idx = ir_stream->push();
+          IR_Instr *mov_instr = ir_stream->get(mov_idx);
+          IR_Op src1_op = hir_to_ir_op(instr->binary.src1);
+          IR_Op src2_op = hir_to_ir_op(instr->binary.src2);
+          IR_Op dest_op = hir_to_ir_op(instr->binary.dest);
+
+          using enum Binary_Op;
+          if ((instr->binary.binary_type == divide)
+              || (instr->binary.binary_type == remainder))
+          {
+            init_mov(mov_instr, src1_op, init_reg(Reg::eax));
+            u64 cdq_idx = ir_stream->push();
+            IR_Instr *cdq_instr = ir_stream->get(cdq_idx);
+            cdq_instr->kind = Instr_Kind::cdq;
+          }
+          else
+          {
+            init_mov(mov_instr, src1_op, dest_op);
+          }
+
+          u64 binary_idx = ir_stream->push();
+          IR_Instr *binary_instr = ir_stream->get(binary_idx);
+          init_binary(binary_instr, instr->binary.binary_type,
+                      src2_op, dest_op);
+
+          if (instr->binary.binary_type == divide)
+          {
+            u64 mov_idx = ir_stream->push();
+            IR_Instr *mov_instr = ir_stream->get(mov_idx);
+            init_mov(mov_instr, init_reg(Reg::eax), dest_op);
+          }
+          else if (instr->binary.binary_type == remainder)
+          {
+            u64 mov_idx = ir_stream->push();
+            IR_Instr *mov_instr = ir_stream->get(mov_idx);
+            init_mov(mov_instr, init_reg(Reg::edx), dest_op);
           }
 
           break;
@@ -231,6 +298,7 @@ void IR_Program::emit_assembly(String8 file_name, bool debug_print = false)
           fprintf(fp, "    movq    %%rbp, %%rsp\n");
           fprintf(fp, "    popq    %%rbp\n");
           fprintf(fp, "    ret\n");
+
           break;
         }
       case fn_pre:
@@ -239,11 +307,13 @@ void IR_Program::emit_assembly(String8 file_name, bool debug_print = false)
           fprintf(fp, "%s:\n", instr->name.c_str());
           fprintf(fp, "    pushq   %%rbp\n");
           fprintf(fp, "    movq    %%rsp, %%rbp\n");
+
           break;
         }
       case salloc:
         {
           fprintf(fp, "    subq    $%lld, %%rsp\n", instr->amt);
+
           break;
         }
       case neg:
@@ -251,6 +321,7 @@ void IR_Program::emit_assembly(String8 file_name, bool debug_print = false)
           fprintf(fp, "    negl    ");
           print_op(fp, instr->operands[0]);
           fprintf(fp, "\n");
+
           break;
         }
       case b_not:
@@ -258,6 +329,106 @@ void IR_Program::emit_assembly(String8 file_name, bool debug_print = false)
           fprintf(fp, "    notl    ");
           print_op(fp, instr->operands[0]);
           fprintf(fp, "\n");
+
+          break;
+        }
+      case add:
+        {
+          if ((instr->operands[0].kind == IR_Op::stack_mem)
+              && (instr->result.kind == IR_Op::stack_mem))
+          {
+            fprintf(fp, "    movl    ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, ", %%r10d\n");
+
+            fprintf(fp, "    addl    %%r10d, ");
+            print_op(fp, instr->result);
+            fprintf(fp, "\n");
+          }
+          else
+          {
+            fprintf(fp, "    addl    ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, ", ");
+            print_op(fp, instr->result);
+            fprintf(fp, "\n");
+          }
+
+          break;
+        }
+      case sub:
+        {
+          if ((instr->operands[0].kind == IR_Op::stack_mem)
+              && (instr->result.kind == IR_Op::stack_mem))
+          {
+            fprintf(fp, "    movl    ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, ", %%r10d\n");
+
+            fprintf(fp, "    subl    %%r10d, ");
+            print_op(fp, instr->result);
+            fprintf(fp, "\n");
+          }
+          else
+          {
+            fprintf(fp, "    subl    ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, ", ");
+            print_op(fp, instr->result);
+            fprintf(fp, "\n");
+          }
+
+          break;
+        }
+      case mul:
+        {
+          if (instr->result.kind == IR_Op::stack_mem)
+          {
+            fprintf(fp, "    movl    ");
+            print_op(fp, instr->result);
+            fprintf(fp, ", %%r11d\n");
+
+            fprintf(fp, "    imull   ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, ", %%r11d\n");
+
+            fprintf(fp, "    movl    %%r11d, ");
+            print_op(fp, instr->result);
+            fprintf(fp, "\n");
+          }
+          else
+          {
+            fprintf(fp, "    imull   ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, ", ");
+            print_op(fp, instr->result);
+            fprintf(fp, "\n");
+          }
+
+          break;
+        }
+      case div:
+        {
+          if (instr->operands[0].kind == IR_Op::immediate)
+          {
+            fprintf(fp, "    movl    ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, ", %%r10d\n");
+
+            fprintf(fp, "    idivl   %%r10d\n");
+          }
+          else
+          {
+            fprintf(fp, "    idivl   ");
+            print_op(fp, instr->operands[0]);
+            fprintf(fp, "\n");
+          }
+
+          break;
+        }
+      case cdq:
+        {
+          fprintf(fp, "    cdq\n");
           break;
         }
       default:
@@ -280,8 +451,14 @@ void print_op(FILE *fp, IR_Op op)
           case Reg::eax:
             fprintf(fp, "%%eax");
             break;
+          case Reg::edx:
+            fprintf(fp, "%%edx");
+            break;
           case Reg::r10d:
             fprintf(fp, "%%r10d");
+            break;
+          case Reg::r11d:
+            fprintf(fp, "%%r11d");
             break;
           default:
             break;

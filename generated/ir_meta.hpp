@@ -23,6 +23,16 @@ static const char *str_from_instr_kind(Instr_Kind e)
       return "neg";
     case Instr_Kind::b_not:
       return "not";
+    case Instr_Kind::add:
+      return "add";
+    case Instr_Kind::sub:
+      return "sub";
+    case Instr_Kind::mul:
+      return "mul";
+    case Instr_Kind::div:
+      return "div";
+    case Instr_Kind::cdq:
+      return "cdq";
   }
   return "";
 }

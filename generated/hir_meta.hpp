@@ -31,6 +31,8 @@ static const char *str_from_hir_instr_kind(HIR_Instr_Kind e)
       return "return";
     case HIR_Instr_Kind::unary:
       return "unary";
+    case HIR_Instr_Kind::binary:
+      return "binary";
   }
   return "";
 }

@@ -27,6 +27,7 @@ HIR_Instr_Kind : int
   meta("illegal") unused,
   meta("return")  ret,
   meta("unary")   unary,
+  meta("binary")  binary,
 };
 
 enum struct [[meta::stringify]]
@@ -66,6 +67,13 @@ struct HIR_Instr
       Operand src;
       Operand dest;
     } unary;
+    struct
+    {
+      Binary_Op binary_type;
+      Operand src1;
+      Operand src2;
+      Operand dest;
+    } binary;
   };
 };
 
@@ -103,6 +111,8 @@ void init_hir_surface(HIR_Surface *surface, String8 ident,
                       u32 instr_offset, u32 instr_count);
 void init_hir_unary(HIR_Instr *instr, Unary_Op type,
                     Operand src, Operand dest);
+void init_hir_binary(HIR_Instr *instr, Binary_Op type,
+                     Operand src1, Operand src2, Operand dest);
 void init_hir_ret(HIR_Instr *instr, Operand ret_val);
 
 

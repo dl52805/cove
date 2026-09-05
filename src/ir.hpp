@@ -18,6 +18,11 @@ Instr_Kind
   meta("salloc")      salloc,
   meta("neg")         neg,
   meta("not")         b_not,
+  meta("add")         add,
+  meta("sub")         sub,
+  meta("mul")         mul,
+  meta("div")         div,
+  meta("cdq")         cdq,
 };
 
 enum struct
@@ -33,7 +38,9 @@ enum struct
 Reg : int
 {
   eax,
+  edx,
   r10d,
+  r11d,
 };
 
 struct IR_Op
@@ -75,6 +82,7 @@ void init_named(IR_Instr *instr, Instr_Kind kind, String8 str);
 void init_stack_alloc(IR_Instr *instr, int stack_amt);
 void init_unary_neg(IR_Instr *instr, IR_Op op);
 void init_unary_not(IR_Instr *instr, IR_Op op);
+void init_binary(IR_Instr *instr, Binary_Op op);
 
 struct IR_Program
 {
